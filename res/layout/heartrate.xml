@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
+        android:layout_gravity="center_horizontal"
+        android:text="Heart Rate:"
+        android:textColor="@android:color/holo_red_dark"
+        android:textSize="40dp"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+    
+    <TextView
+        android:id="@+id/tvHeartRate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="25dp"
+        android:textColor="@android:color/holo_red_dark"
+        android:textSize="80dp"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+    
+	<Button
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginTop="25dp"
+	    android:text="Test Button 1"
+	    android:id="@+id/bTestButton1"
+	    android:layout_gravity="center_horizontal"
+	    android:enabled="true" />
+	
+	<Button
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_marginTop="25dp"
+	    android:text="Test Button 2"
+	    android:id="@+id/bTestButton2"
+	    android:layout_gravity="center_horizontal"
+	    android:enabled="true" />
+    
+</LinearLayout>
