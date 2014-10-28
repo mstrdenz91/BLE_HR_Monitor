@@ -181,15 +181,15 @@ public class HeartRateActivity extends Activity implements OnClickListener
 //		}
 	}
 
-	private void customDelay( int ms )
-	{
-		try 
-		{
-			Thread.sleep( ms );
-		} 
-		catch  (InterruptedException e ) 
-		{
-			e.printStackTrace();
-		}
-	}
+//	private void customDelay( int ms )
+//	{
+//		try 
+//		{
+//			Thread.sleep( ms );
+//		} 
+//		catch  (InterruptedException e ) 
+//		{
+//			e.printStackTrace();
+//		}
+//	}
 }
