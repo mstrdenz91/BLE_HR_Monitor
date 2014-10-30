@@ -1,11 +1,10 @@
 package com.fourtress.ble_hr_monitor;
 
-import com.fourtress.ble_accelerator_lib.BleFacade;
-
 import android.app.Activity;
-import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,21 +15,16 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class HeartRateActivity extends Activity implements OnClickListener
-{
-	//BleFacade bleHandler = null;
-	
+{	
 	private int cnt = 60;
-	private boolean deviceFound = false;
 	
 	private Button TestButton1, TestButton2;
 	private TextView VirtualHeartRate;
-
+	
 	@Override
 	protected void onCreate( Bundle savedInstanceState ) 
 	{
 		super.onCreate( savedInstanceState );
-		
-//		bleHandler = new BleFacade( this );
 		
 		setContentView( R.layout.heartrate );
 		
@@ -43,8 +37,6 @@ public class HeartRateActivity extends Activity implements OnClickListener
 		TestButton2.setOnClickListener(this);
 		
 		VirtualHeartRate.setText( Integer.toString( cnt ) );
-		
-//		bleHandler.checkHardwareAvailable();
 	}
 	
 	@Override
@@ -59,47 +51,13 @@ public class HeartRateActivity extends Activity implements OnClickListener
 	protected void onResume() 
 	{
 		super.onResume();
-		
-		Log.d("DEBUG", "Start intent");
-		startService( new Intent( this, BleService.class ) );
-		
-		
-//		if( bleHandler.enable() )
-//		{
-//			Log.d("DEBUG", "Bluetooth enabled");
-//			VirtualHeartRate.setText( Integer.toString( ++cnt ) );
-//			bleHandler.startScan();
-//			Log.d("DEBUG", "Start scan");
-//			customDelay( 8000 );
-//			if( deviceFound )
-//			{
-//				Log.d("DEBUG", "Device found");
-//				customDelay( 2000 );
-//				VirtualHeartRate.setText( Integer.toString( ++cnt ) );
-//				Log.d("DEBUG", "Stop scan");
-//				bleHandler.stopScan();
-//				if (bleHandler.connect( "RFduino" ) )
-//				{
-//					Log.d("DEBUG", "RFduino connected");
-//					VirtualHeartRate.setText( Integer.toString( ++cnt ) );
-//					byte[] led = new byte[]{1};
-//					Log.d("DEBUG", "Toggle LED");
-//					if( bleHandler.sendRFduinoData( led ) )
-//					{
-//						VirtualHeartRate.setText( Integer.toString( ++cnt ) );
-//						Log.d("DEBUG", "Toggle LED succeeded");
-//					}
-//				}
-//			}
-//		}
-//		Log.d("DEBUG", "Ble not enabled?");
+		//startService( new Intent( this, BleService.class ) );
 	}
 
 	@Override
 	protected void onPause() 
 	{
 		super.onPause();
-//		bleHandler.disconnect();
 	}
 
 	@Override
@@ -126,70 +84,22 @@ public class HeartRateActivity extends Activity implements OnClickListener
 		}
 	}
 
-	public void bleDeviceFoundCallback( BluetoothDevice device, final int rssi )
-	{
-		deviceFound = true;
-	}
-	
-	public void bleDataReadCallback( byte receivedByte )
-	{
-		VirtualHeartRate.setText( receivedByte );
-	}
-
 	@Override
 	public void onClick(View v) 
 	{
 		switch( v.getId() )
 		{
 		case R.id.bTestButton1:
-			Log.d("DEBUG", "button1 clicked");
-			Intent intent = new Intent(this, BleService.class);
-			startService(intent);
+			Log.d( "DEBUG", "button1 clicked" );
+			Intent bleServiceIntent = new Intent( this, BleService.class );
+			bleServiceIntent.putExtra("activity", "previousActivity");
+			startService( bleServiceIntent );
 			break;
 		case R.id.bTestButton2:
-			Log.d("DEBUG", "button2 clicked");
+			Log.d( "DEBUG", "button2 clicked" );
 			stopService( new Intent( this, BleService.class ) );
 			break;
 		default:
 		}
-		
-//		if( v.getId() == R.id.tvHeartRate )
-//		{
-//			cnt++;
-//			VirtualHeartRate.setText( Integer.toString( cnt ) );
-//		}
-//		switch(cnt)
-//		{
-//		case 61:
-//			bleHandler.enable();
-//			break;
-//		case 62:
-//			bleHandler.startScan();
-//			break;
-//		case 63:
-//			bleHandler.stopScan();
-//			break;
-//		case 64:
-//			bleHandler.connect( "RFduino" );
-//			break;
-//		case 65:
-//			byte[] led = new byte[]{1};
-//			bleHandler.sendRFduinoData( led );
-//			break;
-//		default:
-//			bleHandler.disconnect();
-//		}
 	}
-
-//	private void customDelay( int ms )
-//	{
-//		try 
-//		{
-//			Thread.sleep( ms );
-//		} 
-//		catch  (InterruptedException e ) 
-//		{
-//			e.printStackTrace();
-//		}
-//	}
 }

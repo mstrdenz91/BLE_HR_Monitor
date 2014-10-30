@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 import android.app.Activity;
+import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -31,7 +32,7 @@ public class BleWrapper {
     private static final BleWrapperUiCallbacks NULL_CALLBACK = new BleWrapperUiCallbacks.Null(); 
     
     /* creates BleWrapper object, set its parent activity and callback object */
-    public BleWrapper(Activity parent, BleWrapperUiCallbacks callback) {
+    public BleWrapper(Service parent, BleWrapperUiCallbacks callback) {
     	this.mParent = parent;
     	mUiCallback = callback;
     	if(mUiCallback == null) mUiCallback = NULL_CALLBACK;
@@ -45,6 +46,12 @@ public class BleWrapper {
     public List<BluetoothGattService> getCachedServices() { return mBluetoothGattServices; }
     public boolean                    isConnected() { return mConnected; }
 
+    /* Couple another activity to the Ble Wrapper. */
+    public void setCurrentActivity( Service currentParrent )
+    {
+    	this.mParent = currentParrent;
+    }
+    
 	/* run test and check if this device has BT and BLE hardware available */
 	public boolean checkBleHardwareAvailable() {
 		// First check general Bluetooth Hardware:
@@ -419,7 +426,7 @@ public class BleWrapper {
         };
     };
     
-	private Activity mParent = null;    
+	private Service mParent = null;    
 	private boolean mConnected = false;
 	private String mDeviceAddress = "";
 

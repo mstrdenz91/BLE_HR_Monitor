@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="com/fourtress/ble_hr_monitor/MainActivityOld.java|com/fourtress/ble_hr_monitor/BleHandler.java" kind="src" path="src"/>
+	<classpathentry excluding="com/fourtress/ble_hr_monitor/MainActivityOld.java|com/fourtress/ble_hr_monitor/BleHandler.java|com/fourtress/ble_accelerator_lib/BleFacade.java|com/fourtress/ble_hr_monitor/BleTest.java|com/fourtress/ble_hr_monitor/BleTestTest.java" kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
