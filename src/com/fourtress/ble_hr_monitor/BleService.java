@@ -3,8 +3,6 @@ package com.fourtress.ble_hr_monitor;
 import com.fourtress.ble_accelerator_lib.BleWrapper;
 import com.fourtress.ble_accelerator_lib.BleWrapperUiCallbacks;
 
-import android.R.string;
-import android.app.Activity;
 import android.app.IntentService;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -12,7 +10,12 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -31,6 +34,44 @@ public class BleService extends IntentService
 	private BleWrapper bleWrapper = null;
 //	private Activity CurrentActivity = null;
 	
+	final static public int START_SCAN		= 234;
+	final static public int RESPONSE 		= 123;
+	
+	static class ActivityRequestHandler extends Handler
+	{
+		public void handleMessage( Message msg )
+		{
+			switch( msg.what ) // get the message type
+			{
+			    case START_SCAN: 
+			    {
+			        try 
+			        {  // Incoming data
+			            String data = msg.getData().getString( "data" );
+			            Message resp = Message.obtain( null, RESPONSE );
+			            
+			            Bundle bResp = new Bundle();
+			            bResp.putString("respData", "Service-To-Activity-String" );
+			            resp.setData( bResp );
+			            
+			            msg.replyTo.send( resp );
+			            
+			            Log.d( "DEBUG", "BLESERVICE RECEIVED: " + data );
+			        } 
+			        catch ( RemoteException e ) 
+			        {
+			            e.printStackTrace();
+			        }
+			        break;
+			    }
+			    default: 
+			        super.handleMessage( msg );
+		    }
+		}
+	}
+	
+	private Messenger msg = new Messenger( new ActivityRequestHandler() );
+	
 	////////////////Functions:////////////////////
 	
 	public BleService() { super( "BleService" ); } // empty constructor
@@ -38,9 +79,9 @@ public class BleService extends IntentService
 	@Override
 	public int onStartCommand( Intent intent, int flags, int startId ) 
 	{
-		Log.d( "DEBUG", "onStartCommand" );
-		setCallbacks();
-	    Toast.makeText( this, "service started", Toast.LENGTH_SHORT ).show();
+//		Log.d( "DEBUG", "onStartCommand" );
+//		setCallbacks();
+//	    Toast.makeText( this, "service started", Toast.LENGTH_SHORT ).show();
 	    
 //	    String activityName = intent.getStringExtra( "activity" );
 
@@ -54,7 +95,8 @@ public class BleService extends IntentService
 	@Override
 	public IBinder onBind( Intent intent ) 
 	{
-		return super.onBind(intent);
+		return msg.getBinder();
+		//return super.onBind(intent);
 	}
 	
 	@Override
@@ -165,9 +207,9 @@ public class BleService extends IntentService
 	{
 		if ( bleWrapper.isBtEnabled() == false ) // check if Bluetooth is enabled
 		{
-			// Bluetooth is not enabled. Request to user to turn it on
+			// Bluetooth is not enabled. Request user to turn it on
 			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			.startActivity( enableBtIntent );
+//			this.startActivity( enableBtIntent );
 		}
 		boolean initialized = bleWrapper.initialize();
 		if( bleWrapper.isBtEnabled() && initialized )

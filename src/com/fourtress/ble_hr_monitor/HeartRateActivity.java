@@ -1,10 +1,16 @@
 package com.fourtress.ble_hr_monitor;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,8 +24,27 @@ public class HeartRateActivity extends Activity implements OnClickListener
 {	
 	private int cnt = 60;
 	
+	private ServiceConnection sConn;
+	private Messenger messenger;
+	
 	private Button TestButton1, TestButton2;
 	private TextView VirtualHeartRate;
+	
+	static class BleResponseHandler extends Handler // This class handles the Service response
+	{
+	    @Override
+	    public void handleMessage( Message msg ) 
+	    {
+	        switch ( msg.what ) // get the message type
+	        {
+		        case BleService.RESPONSE: 
+		        {
+		            String result = msg.getData().getString( "respData" );
+		            Log.d( "DEBUG", "HEARTRATEACTIVITY RECEIVED: " + result );
+		        }
+	        }
+	    }
+	}
 	
 	@Override
 	protected void onCreate( Bundle savedInstanceState ) 
@@ -37,6 +62,8 @@ public class HeartRateActivity extends Activity implements OnClickListener
 		TestButton2.setOnClickListener(this);
 		
 		VirtualHeartRate.setText( Integer.toString( cnt ) );
+		
+		createMessageHandler();
 	}
 	
 	@Override
@@ -91,15 +118,58 @@ public class HeartRateActivity extends Activity implements OnClickListener
 		{
 		case R.id.bTestButton1:
 			Log.d( "DEBUG", "button1 clicked" );
-			Intent bleServiceIntent = new Intent( this, BleService.class );
-			bleServiceIntent.putExtra("activity", "previousActivity");
-			startService( bleServiceIntent );
+			sendRequestToBleService();
+//			Intent bleServiceIntent = new Intent( this, BleService.class );
+//			bleServiceIntent.putExtra("activity", "previousActivity");
+//			startService( bleServiceIntent );
 			break;
 		case R.id.bTestButton2:
 			Log.d( "DEBUG", "button2 clicked" );
-			stopService( new Intent( this, BleService.class ) );
+//			stopService( new Intent( this, BleService.class ) );
 			break;
 		default:
 		}
+	}
+
+	private void createMessageHandler()
+	{
+		// Service Connection to handle system callbacks
+        sConn = new ServiceConnection() 
+        {
+            @Override
+            public void onServiceDisconnected( ComponentName name ) 
+            {
+                messenger = null;
+            }
+
+			@Override
+			public void onServiceConnected( ComponentName name, IBinder service ) 
+			{
+				messenger = new Messenger( service ); // We are connected to the service
+			}
+        };
+		// We bind to the service
+        bindService( new Intent( this, BleService.class ), sConn, Context.BIND_AUTO_CREATE );
+	}
+	
+	private void sendRequestToBleService()
+	{
+        Message msg = Message.obtain( null, BleService.START_SCAN );
+ 
+        msg.replyTo = new Messenger( new BleResponseHandler() );
+
+        Bundle b = new Bundle();
+        b.putString("data", "Activity-To-Service-String");
+ 
+        msg.setData(b);
+        
+        try 
+        {
+            messenger.send(msg);
+        } 
+        catch (RemoteException e)
+        {                    
+            e.printStackTrace();
+        }
 	}
 }
