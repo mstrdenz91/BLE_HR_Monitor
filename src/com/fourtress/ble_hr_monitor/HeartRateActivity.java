@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -36,7 +37,7 @@ public class HeartRateActivity extends Activity implements OnClickListener
 	private BleServiceBroadcastReceiver bleServiceBroadcastReceiver;
 	
 	private Button TestButton1, TestButton2;
-	private TextView VirtualHeartRate;
+	private TextView RSSILabel, RSSI, HeartRate;
 	
 	Intent enableBleIntent = new Intent( BluetoothAdapter.ACTION_REQUEST_ENABLE );
 	
@@ -45,27 +46,47 @@ public class HeartRateActivity extends Activity implements OnClickListener
 		@Override
 		public void onReceive( Context context, Intent intent ) 
 		{
+			int readData = 0;
+			int signalColor = Color.DKGRAY;
 			String receiveStr = intent.getStringExtra( BleService.EXTRA_KEY_OUT );
-			if( receiveStr.equalsIgnoreCase( "H_AVAILABLE") )
+			if( receiveStr.equalsIgnoreCase( "Hardware_Not_Available") )
 			{
-				Toast.makeText( context, "Hardware IS BLE compatible!", Toast.LENGTH_LONG ).show();
+				Toast.makeText( context, "Hardware is NOT BLE compatible!", Toast.LENGTH_LONG ).show();
 			}
-			if( receiveStr.equalsIgnoreCase( "Request_Ble_Enable" ) )
+			else if( receiveStr.equalsIgnoreCase( "Request_Ble_Enable" ) )
 			{
 				enableBleIntent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP );
 				HeartRateActivity.this.startActivity( enableBleIntent );
 			}
-			if( receiveStr.equalsIgnoreCase( "Device_Found" ) )
+			else if( receiveStr.equalsIgnoreCase( "Device_Found" ) )
 			{
 				Toast.makeText( context, "RFduino Found!", Toast.LENGTH_LONG ).show();
 			}
-			if( receiveStr.startsWith( "Data_Read" ) )
+			else if( receiveStr.equalsIgnoreCase( "Device_Connected" ) )
 			{
-				int readData = 0;
+				Toast.makeText( context, "RFduino Connected!", Toast.LENGTH_LONG ).show();
+			}
+			else if( receiveStr.equalsIgnoreCase( "Device_Disconnected" ) )
+			{
+				Toast.makeText( context, "RFduino Disconnected!", Toast.LENGTH_LONG ).show();
+			}
+			else if( receiveStr.startsWith( "Data_Read" ) )
+			{
 				Scanner parse = new Scanner( receiveStr ).useDelimiter("[^0-9]+"); // Regular Expressions
 				readData = parse.nextInt();
 				cnt += readData;
-				VirtualHeartRate.setText( Integer.toString( cnt ) );
+				HeartRate.setText( Integer.toString( cnt ) );
+			}
+			else if( receiveStr.startsWith( "New_RSSI" ) )
+			{
+				Scanner parse = new Scanner( receiveStr ).useDelimiter("[^0-9]+"); // Regular Expressions
+				readData = parse.nextInt();
+				if( readData < 30 ) { signalColor = Color.RED; }
+				else if( readData < 40 ) { signalColor = 0xffff8800; } // Orange 
+				else { signalColor = 0xff008800; } // Dark Green
+				RSSILabel.setTextColor( signalColor );
+				RSSI.setTextColor( signalColor );
+				RSSI.setText( Integer.toString( readData ) );
 			}
 		}
 	}
@@ -93,15 +114,18 @@ public class HeartRateActivity extends Activity implements OnClickListener
 		
 		setContentView( R.layout.heartrate );
 		
-		TestButton1 = (Button) findViewById(R.id.bTestButton1);
-		TestButton2 = (Button) findViewById(R.id.bTestButton2);
-		VirtualHeartRate = (TextView) findViewById(R.id.tvHeartRate);
+		TestButton1 = (Button) 		findViewById( R.id.bTestButton1 );
+		TestButton2 = (Button) 		findViewById( R.id.bTestButton2 );
+		HeartRate 	= (TextView) 	findViewById( R.id.tvHeartRate );
+		RSSILabel	= (TextView)	findViewById( R.id.tvRSSILabel );
+		RSSI 		= (TextView) 	findViewById( R.id.tvRSSI );
 		
-		VirtualHeartRate.setOnClickListener(this);
+		HeartRate.setOnClickListener(this);
 		TestButton1.setOnClickListener(this);
 		TestButton2.setOnClickListener(this);
 		
-		VirtualHeartRate.setText( Integer.toString( cnt ) );
+		RSSI.setText( "..." );
+		HeartRate.setText( "..." );
 		
 		createMessageHandler();
 		
@@ -136,17 +160,16 @@ public class HeartRateActivity extends Activity implements OnClickListener
 		switch(item.getItemId())
 		{
 		case R.id.action_ble_test:
-			NextActivity = new Intent("com.fourtress.ble_hr_monitor.BLE_TEST_TEST"); // start ble_debug activity
-			startActivity(NextActivity);
-			return true;
+			return super.onOptionsItemSelected( item );
 		case R.id.action_show_devices:
 			return super.onOptionsItemSelected( item );
 		case R.id.action_settings:
-			NextActivity = new Intent("com.fourtress.ble_hr_monitor.SETTINGS"); // start settings activity
-			startActivity(NextActivity);
+			NextActivity = new Intent( "com.fourtress.ble_hr_monitor.SETTINGS" ); // start settings activity
+			startActivity( NextActivity );
 			return true;
-		case R.id.action_help:
-			// show help popup
+		case R.id.action_about:
+			NextActivity = new Intent( "com.fourtress.ble_hr_monitor.ABOUT" );
+			startActivity( NextActivity );
 			return super.onOptionsItemSelected( item );
 		default:
 			return super.onOptionsItemSelected( item );

@@ -121,7 +121,7 @@ public class BleService extends IntentService
 	{
 		if( !checkHardwareAvailable() )
 		{
-			customBroadcast( "Hardware Not Available!" );
+			customBroadcast( "Hardware_Not_Available!" );
 			stopSelf();
 		}
 		while( true )
@@ -157,11 +157,19 @@ public class BleService extends IntentService
 	{
 		if( device.getName().equalsIgnoreCase( "RFduino" ) )
 		{
-			customBroadcast( "Device_Found" );
+			//customBroadcast( "Device_Found" );
 			stopScan();
 			bleDevice = device;
 		}
 		connectionState = STATE_FOUND;
+	}
+	
+	public void bleNewRssiCallback( BluetoothDevice device, final int rssi )
+	{
+		if( device.getName().equalsIgnoreCase( "RFduino" ) )
+		{
+			customBroadcast( "New_RSSI " + ( rssi + 100 ) );
+		}
 	}
 	
 	private void serviceDelay( int ms )
@@ -210,10 +218,34 @@ public class BleService extends IntentService
 			@Override
 			public void uiDeviceFound( final BluetoothDevice device, final int rssi, final byte[] record )
 			{
-				bleDeviceFoundCallback( device, rssi );
 				super.uiDeviceFound( device, rssi, record );
+				bleDeviceFoundCallback( device, rssi );
 			}
 			
+			@Override
+			public void uiNewRssiAvailable(BluetoothGatt gatt, BluetoothDevice device, int rssi) 
+			{
+				super.uiNewRssiAvailable(gatt, device, rssi);
+				bleNewRssiCallback( device, rssi );
+			}
+
+			@Override
+			public void uiDeviceConnected(BluetoothGatt gatt, BluetoothDevice device) 
+			{
+				super.uiDeviceConnected(gatt, device);
+				connectionState = STATE_CONNECTED;
+				customBroadcast( "Device_Connected" );
+			}
+
+			@Override
+			public void uiDeviceDisconnected(BluetoothGatt gatt, BluetoothDevice device) 
+			{
+				super.uiDeviceDisconnected(gatt, device);
+				connectionState = STATE_SCANNING;
+				customBroadcast( "Device_Disconnected" );
+				bleNewRssiCallback( device, -100 );
+			}
+
 			@Override
 			public void uiNewValueForCharacteristic( BluetoothGatt gatt, BluetoothDevice device, BluetoothGattService service, 
 					BluetoothGattCharacteristic ch, String strValue, int intValue, byte[] rawValue, String timestamp )
@@ -272,7 +304,6 @@ public class BleService extends IntentService
 		{
 			if( bleWrapper.connect( bleDevice.getAddress().toString() ) )
 			{
-				Log.d("DEBUG", "Connected with closest RFduino");
 				return true;
 			}
 			else

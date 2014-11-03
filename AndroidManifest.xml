@@ -50,6 +50,15 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+		<activity
+		    android:name="com.fourtress.ble_hr_monitor.About"
+		    android:label="HeartRate Monitor V0.1"
+		    android:theme="@android:style/Theme.Dialog" >
+		    <intent-filter>
+		        <action android:name="com.fourtress.ble_hr_monitor.ABOUT" />
+		        <category android:name="android.intent.category.DEFAULT" />
+		    </intent-filter>
+		</activity>
         <service
 			android:name="com.fourtress.ble_hr_monitor.BleService" 
 			android:enabled= "true" >
