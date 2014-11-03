@@ -1,10 +1,10 @@
 package com.fourtress.ble_hr_monitor;
 
+import com.fourtress.ble_accelerator_lib.BleDefinedUUIDs;
 import com.fourtress.ble_accelerator_lib.BleWrapper;
 import com.fourtress.ble_accelerator_lib.BleWrapperUiCallbacks;
 
 import android.app.IntentService;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -23,19 +23,26 @@ public class BleService extends IntentService
 {	
 	/////////////////////OLD BLE SERVICE/////////////////////////////////
 	final static private int STATE_DISABLED 	= 1;
-	final static private int STATE_ENABLED 		= 2;
-	final static private int STATE_SCANNING 	= 3;
-	final static private int STATE_FOUND 		= 4;
-	final static private int STATE_CONNECTED 	= 5;
-	static private int connectionState = STATE_DISABLED;
-//	BleFacade bleHandler = null;
+	final static private int STATE_SCANNING 	= 2;
+	final static private int STATE_FOUND 		= 3;
+	final static private int STATE_CONNECTED 	= 4;
+	static private int connectionState 			= STATE_DISABLED;
 	/////////////////////////////////////////////////////////////////////
 	
-	private BleWrapper bleWrapper = null;
-//	private Activity CurrentActivity = null;
+	private BleWrapper 					bleWrapper 				= null;
+	private BluetoothDevice 			bleDevice 				= null;
+	private BluetoothGatt 				bleGatt 				= null;
+	private BluetoothGattService 		bleGattService 			= null;
+	private BluetoothGattCharacteristic bleGattCharacteristic 	= null;
+	
+	byte[] sendVal = new byte[]{0};
 	
 	final static public int START_SCAN		= 234;
 	final static public int RESPONSE 		= 123;
+	
+	public static final String ACTION_MyIntentService = "com.fourtress.ble_hr_monitor.MyBroadcastReceiver";
+	public static final String EXTRA_KEY_IN = "EXTRA_IN";
+	public static final String EXTRA_KEY_OUT = "EXTRA_OUT";
 	
 	static class ActivityRequestHandler extends Handler
 	{
@@ -95,6 +102,8 @@ public class BleService extends IntentService
 	@Override
 	public IBinder onBind( Intent intent ) 
 	{
+		Log.d( "DEBUG", "onBind" );
+		setCallbacks();
 		return msg.getBinder();
 		//return super.onBind(intent);
 	}
@@ -112,6 +121,7 @@ public class BleService extends IntentService
 	{
 		if( !checkHardwareAvailable() )
 		{
+			customBroadcast( "Hardware Not Available!" );
 			stopSelf();
 		}
 		while( true )
@@ -121,27 +131,36 @@ public class BleService extends IntentService
 			case STATE_DISABLED:
 				if( enable() )
 				{
-					connectionState = STATE_ENABLED;
+					connectionState = STATE_SCANNING;
 				}
 				break;
-			case STATE_ENABLED:
-				//bleHandler.startScan();
-				connectionState = STATE_SCANNING;
-				break;
 			case STATE_SCANNING:
-				// nothing to do...?
+				scanForDuration( 2000 );
 				break;
 			case STATE_FOUND:
-				
+				if( connect( "RFduino" ) )
+				{
+					connectionState = STATE_CONNECTED;
+				}
 				break;
 			case STATE_CONNECTED:
+				sendVal[0] ^= 1;
+				sendRFduinoData( sendVal );
+				receiveRFduinoData();
 				break;
 			}
+			serviceDelay( 500 );
 		}
 	}
 
 	public void bleDeviceFoundCallback( BluetoothDevice device, final int rssi )
 	{
+		if( device.getName().equalsIgnoreCase( "RFduino" ) )
+		{
+			customBroadcast( "Device_Found" );
+			stopScan();
+			bleDevice = device;
+		}
 		connectionState = STATE_FOUND;
 	}
 	
@@ -157,6 +176,15 @@ public class BleService extends IntentService
 		}
 	}
 
+	private void customBroadcast( String str )
+	{
+	   Intent broadcastMessage = new Intent();
+	   broadcastMessage.setAction( ACTION_MyIntentService );
+	   broadcastMessage.addCategory( Intent.CATEGORY_DEFAULT );
+	   broadcastMessage.putExtra( EXTRA_KEY_OUT, str );
+	   sendBroadcast( broadcastMessage );
+	}
+	
 	/////////////BleFacade:////////////////////////
 	
 	private boolean checkHardwareAvailable()
@@ -182,6 +210,7 @@ public class BleService extends IntentService
 			@Override
 			public void uiDeviceFound( final BluetoothDevice device, final int rssi, final byte[] record )
 			{
+				bleDeviceFoundCallback( device, rssi );
 				super.uiDeviceFound( device, rssi, record );
 			}
 			
@@ -190,7 +219,7 @@ public class BleService extends IntentService
 					BluetoothGattCharacteristic ch, String strValue, int intValue, byte[] rawValue, String timestamp )
 			{
 				super.uiNewValueForCharacteristic( gatt, device, service, ch, strValue, intValue, rawValue, timestamp);
-				Log.d("DEBUG", "uiNewValueForCharacteristic");
+				customBroadcast( "Data_Read " + intValue );
 			}
 		} );
 	}
@@ -207,9 +236,7 @@ public class BleService extends IntentService
 	{
 		if ( bleWrapper.isBtEnabled() == false ) // check if Bluetooth is enabled
 		{
-			// Bluetooth is not enabled. Request user to turn it on
-			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-//			this.startActivity( enableBtIntent );
+			customBroadcast( "Request_Ble_Enable" ); // send message to Activity
 		}
 		boolean initialized = bleWrapper.initialize();
 		if( bleWrapper.isBtEnabled() && initialized )
@@ -234,7 +261,56 @@ public class BleService extends IntentService
 
 	private void scanForDuration(int ms)
 	{
-		
+		startScan();
+		serviceDelay( ms );
+		stopScan();
 	}
 
+	private boolean connect( String name )
+	{
+		if( bleDevice!= null && bleDevice.getName().equalsIgnoreCase( "RFduino" ) )
+		{
+			if( bleWrapper.connect( bleDevice.getAddress().toString() ) )
+			{
+				Log.d("DEBUG", "Connected with closest RFduino");
+				return true;
+			}
+			else
+			{
+				Log.d("DEBUG", "uiDeviceFound: Connection problem");
+				return false;
+			}
+		}
+		else
+		{
+			Log.d("DEBUG", "No RFduino device found");
+			return false;
+		}
+	}
+	
+	public void disconnect()
+	{
+		bleWrapper.diconnect();
+		bleWrapper.close();
+	}
+
+	public boolean sendRFduinoData( byte[] val )
+	{
+		bleGatt = bleWrapper.getGatt();
+		bleGattService = bleGatt.getService( BleDefinedUUIDs.Service.RFDUINO_UUID_SERVICE );
+		bleGattCharacteristic = bleGattService.getCharacteristic( BleDefinedUUIDs.Characteristic.RFDUINO_UUID_SEND );
+		
+        	// toggle the first bit
+        bleGattCharacteristic.setValue( val );
+        bleGattCharacteristic.setWriteType( BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE );
+        return bleGatt.writeCharacteristic( bleGattCharacteristic );
+    }
+
+	public void receiveRFduinoData()
+	{
+		bleGatt = bleWrapper.getGatt();
+		bleGattService = bleGatt.getService(BleDefinedUUIDs.Service.RFDUINO_UUID_SERVICE);
+		bleGattCharacteristic = bleGattService.getCharacteristic(BleDefinedUUIDs.Characteristic.RFDUINO_UUID_RECEIVE);
+		bleWrapper.requestCharacteristicValue( bleGattCharacteristic );
+	}
 }

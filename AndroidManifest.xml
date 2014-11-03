@@ -54,5 +54,10 @@
 			android:name="com.fourtress.ble_hr_monitor.BleService" 
 			android:enabled= "true" >
 		</service> 
+        <receiver android:name="MyBroadcastReceiver">
+            <intent-filter>
+                <action android:name="com.fourtress.ble_hr_monitor.MyBroadcastReceiver" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

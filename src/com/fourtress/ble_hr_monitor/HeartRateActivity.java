@@ -1,9 +1,14 @@
 package com.fourtress.ble_hr_monitor;
 
+import java.util.Scanner;
+
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,6 +24,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class HeartRateActivity extends Activity implements OnClickListener
 {	
@@ -27,8 +33,42 @@ public class HeartRateActivity extends Activity implements OnClickListener
 	private ServiceConnection sConn;
 	private Messenger messenger;
 	
+	private BleServiceBroadcastReceiver bleServiceBroadcastReceiver;
+	
 	private Button TestButton1, TestButton2;
 	private TextView VirtualHeartRate;
+	
+	Intent enableBleIntent = new Intent( BluetoothAdapter.ACTION_REQUEST_ENABLE );
+	
+	public class BleServiceBroadcastReceiver extends BroadcastReceiver 
+	{
+		@Override
+		public void onReceive( Context context, Intent intent ) 
+		{
+			String receiveStr = intent.getStringExtra( BleService.EXTRA_KEY_OUT );
+			if( receiveStr.equalsIgnoreCase( "H_AVAILABLE") )
+			{
+				Toast.makeText( context, "Hardware IS BLE compatible!", Toast.LENGTH_LONG ).show();
+			}
+			if( receiveStr.equalsIgnoreCase( "Request_Ble_Enable" ) )
+			{
+				enableBleIntent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP );
+				HeartRateActivity.this.startActivity( enableBleIntent );
+			}
+			if( receiveStr.equalsIgnoreCase( "Device_Found" ) )
+			{
+				Toast.makeText( context, "RFduino Found!", Toast.LENGTH_LONG ).show();
+			}
+			if( receiveStr.startsWith( "Data_Read" ) )
+			{
+				int readData = 0;
+				Scanner parse = new Scanner( receiveStr ).useDelimiter("[^0-9]+"); // Regular Expressions
+				readData = parse.nextInt();
+				cnt += readData;
+				VirtualHeartRate.setText( Integer.toString( cnt ) );
+			}
+		}
+	}
 	
 	static class BleResponseHandler extends Handler // This class handles the Service response
 	{
@@ -64,6 +104,8 @@ public class HeartRateActivity extends Activity implements OnClickListener
 		VirtualHeartRate.setText( Integer.toString( cnt ) );
 		
 		createMessageHandler();
+		
+		initBroadcastIntents();
 	}
 	
 	@Override
@@ -118,7 +160,7 @@ public class HeartRateActivity extends Activity implements OnClickListener
 		{
 		case R.id.bTestButton1:
 			Log.d( "DEBUG", "button1 clicked" );
-			sendRequestToBleService();
+			sendRequestToBleService( "Activity-To-Service-String", BleService.START_SCAN );
 //			Intent bleServiceIntent = new Intent( this, BleService.class );
 //			bleServiceIntent.putExtra("activity", "previousActivity");
 //			startService( bleServiceIntent );
@@ -152,24 +194,39 @@ public class HeartRateActivity extends Activity implements OnClickListener
         bindService( new Intent( this, BleService.class ), sConn, Context.BIND_AUTO_CREATE );
 	}
 	
-	private void sendRequestToBleService()
+	private void sendRequestToBleService( String str, int flag )
 	{
-        Message msg = Message.obtain( null, BleService.START_SCAN );
+        Message msg = Message.obtain( null, flag );
  
         msg.replyTo = new Messenger( new BleResponseHandler() );
 
         Bundle b = new Bundle();
-        b.putString("data", "Activity-To-Service-String");
+        b.putString( "data", str );
  
-        msg.setData(b);
+        msg.setData( b );
         
         try 
         {
-            messenger.send(msg);
+            messenger.send( msg );
         } 
-        catch (RemoteException e)
+        catch ( RemoteException e )
         {                    
             e.printStackTrace();
         }
 	}
+	
+	private void initBroadcastIntents()
+	{
+		Intent intentMyIntentService = new Intent( this, BleService.class );
+		intentMyIntentService.putExtra( BleService.EXTRA_KEY_IN, "test" );
+		startService( intentMyIntentService );
+		
+		bleServiceBroadcastReceiver = new BleServiceBroadcastReceiver();
+		
+		//register BroadcastReceiver
+		IntentFilter intentFilter = new IntentFilter( BleService.ACTION_MyIntentService );
+		intentFilter.addCategory( Intent.CATEGORY_DEFAULT );
+		registerReceiver( bleServiceBroadcastReceiver, intentFilter );
+	}
+	
 }
