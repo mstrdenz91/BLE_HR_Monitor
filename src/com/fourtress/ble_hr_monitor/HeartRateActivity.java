@@ -29,8 +29,6 @@ import android.widget.Toast;
 
 public class HeartRateActivity extends Activity implements OnClickListener
 {	
-	private int cnt = 60;
-	
 	private ServiceConnection sConn;
 	private Messenger messenger;
 	
@@ -74,8 +72,7 @@ public class HeartRateActivity extends Activity implements OnClickListener
 			{
 				Scanner parse = new Scanner( receiveStr ).useDelimiter("[^0-9]+"); // Regular Expressions
 				readData = parse.nextInt();
-				cnt += readData;
-				HeartRate.setText( Integer.toString( cnt ) );
+				HeartRate.setText( Integer.toString( readData ) );
 			}
 			else if( receiveStr.startsWith( "New_RSSI" ) )
 			{
@@ -159,7 +156,9 @@ public class HeartRateActivity extends Activity implements OnClickListener
 		Intent NextActivity;
 		switch(item.getItemId())
 		{
-		case R.id.action_ble_test:
+		case R.id.action_hr_graph:
+			NextActivity = new Intent( "com.fourtress.ble_hr_monitor.HRGRAPH" );
+			startActivity( NextActivity );
 			return super.onOptionsItemSelected( item );
 		case R.id.action_show_devices:
 			return super.onOptionsItemSelected( item );

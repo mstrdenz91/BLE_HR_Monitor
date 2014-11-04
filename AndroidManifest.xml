@@ -26,27 +26,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.fourtress.ble_hr_monitor.BleTest"
-            android:label="@string/app_titlebar_ble_test" >
-            <intent-filter>
-                <action android:name="com.fourtress.ble_hr_monitor.BLE_TEST" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name="com.fourtress.ble_hr_monitor.BleTestTest"
-            android:label="@string/app_titlebar_ble_test" >
-            <intent-filter>
-                <action android:name="com.fourtress.ble_hr_monitor.BLE_TEST_TEST" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <activity
+		<activity
             android:name="com.fourtress.ble_hr_monitor.SettingsActivity"
             android:label="@string/app_titlebar_settings" >
             <intent-filter>
                 <action android:name="com.fourtress.ble_hr_monitor.SETTINGS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.fourtress.ble_hr_monitor.HrGraphActivity"
+            android:label="@string/app_titlebar_hrgraph" >
+            <intent-filter>
+                <action android:name="com.fourtress.ble_hr_monitor.HRGRAPH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

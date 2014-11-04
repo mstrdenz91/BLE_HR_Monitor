@@ -2,10 +2,12 @@
 <resources>
 
     <string name="app_titlebar_main">HeartRate Monitor</string>
+    <string name="app_titlebar_hrgraph">HeartRate Graph</string>
     <string name="app_titlebar_ble_test">Bluetooth Test</string>
     <string name="app_titlebar_settings">Settings</string>
     <string name="Ble_Service">Ble Service</string>
     
+    <string name="action_hr_graph">Show Graph</string>
     <string name="action_ble_test">Bluetooth test</string>
     <string name="action_show_devices">Show Devices</string>
     <string name="action_settings">Settings</string>

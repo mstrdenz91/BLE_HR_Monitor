@@ -314,7 +314,6 @@ public class BleService extends IntentService
 		}
 		else
 		{
-			Log.d("DEBUG", "No RFduino device found");
 			return false;
 		}
 	}
