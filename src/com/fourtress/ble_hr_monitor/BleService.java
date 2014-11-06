@@ -100,12 +100,10 @@ public class BleService extends IntentService
 	}
 	
 	@Override
-	public IBinder onBind( Intent intent ) 
+	public void onCreate() 
 	{
-		Log.d( "DEBUG", "onBind" );
+		super.onCreate();
 		setCallbacks();
-		return msg.getBinder();
-		//return super.onBind(intent);
 	}
 	
 	@Override
@@ -114,6 +112,21 @@ public class BleService extends IntentService
 		Log.d( "DEBUG", "onStopCommand" );
 		Toast.makeText( this, "service stopped", Toast.LENGTH_SHORT ).show();
 		super.onDestroy();
+	}
+
+	@Override
+	public IBinder onBind( Intent intent ) 
+	{
+		Log.d( "DEBUG", "onBind" );
+		return msg.getBinder();
+		//return super.onBind(intent);
+	}
+	
+	@Override
+	public boolean onUnbind(Intent intent) 
+	{
+		Log.d( "DEBUG", "onUnbind" );
+		return super.onUnbind(intent);
 	}
 
 	@Override

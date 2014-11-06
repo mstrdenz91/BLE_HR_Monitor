@@ -2,21 +2,10 @@ package com.fourtress.ble_hr_monitor;
 
 import java.util.Scanner;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,82 +16,12 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class HeartRateActivity extends Activity implements OnClickListener
+public class HeartRateActivity extends AbstractBleActivity implements OnClickListener
 {	
-	private ServiceConnection sConn;
-	private Messenger messenger;
-	
-	private BleServiceBroadcastReceiver bleServiceBroadcastReceiver;
-	
 	private Button TestButton1, TestButton2;
 	private TextView RSSILabel, RSSI, HeartRate;
 	
 	Intent enableBleIntent = new Intent( BluetoothAdapter.ACTION_REQUEST_ENABLE );
-	
-	public class BleServiceBroadcastReceiver extends BroadcastReceiver 
-	{
-		@Override
-		public void onReceive( Context context, Intent intent ) 
-		{
-			int readData = 0;
-			int signalColor = Color.DKGRAY;
-			String receiveStr = intent.getStringExtra( BleService.EXTRA_KEY_OUT );
-			if( receiveStr.equalsIgnoreCase( "Hardware_Not_Available") )
-			{
-				Toast.makeText( context, "Hardware is NOT BLE compatible!", Toast.LENGTH_LONG ).show();
-			}
-			else if( receiveStr.equalsIgnoreCase( "Request_Ble_Enable" ) )
-			{
-				enableBleIntent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP );
-				HeartRateActivity.this.startActivity( enableBleIntent );
-			}
-			else if( receiveStr.equalsIgnoreCase( "Device_Found" ) )
-			{
-				Toast.makeText( context, "RFduino Found!", Toast.LENGTH_LONG ).show();
-			}
-			else if( receiveStr.equalsIgnoreCase( "Device_Connected" ) )
-			{
-				Toast.makeText( context, "RFduino Connected!", Toast.LENGTH_LONG ).show();
-			}
-			else if( receiveStr.equalsIgnoreCase( "Device_Disconnected" ) )
-			{
-				Toast.makeText( context, "RFduino Disconnected!", Toast.LENGTH_LONG ).show();
-			}
-			else if( receiveStr.startsWith( "Data_Read" ) )
-			{
-				Scanner parse = new Scanner( receiveStr ).useDelimiter("[^0-9]+"); // Regular Expressions
-				readData = parse.nextInt();
-				HeartRate.setText( Integer.toString( readData ) );
-			}
-			else if( receiveStr.startsWith( "New_RSSI" ) )
-			{
-				Scanner parse = new Scanner( receiveStr ).useDelimiter("[^0-9]+"); // Regular Expressions
-				readData = parse.nextInt();
-				if( readData < 30 ) { signalColor = Color.RED; }
-				else if( readData < 40 ) { signalColor = 0xffff8800; } // Orange 
-				else { signalColor = 0xff008800; } // Dark Green
-				RSSILabel.setTextColor( signalColor );
-				RSSI.setTextColor( signalColor );
-				RSSI.setText( Integer.toString( readData ) );
-			}
-		}
-	}
-	
-	static class BleResponseHandler extends Handler // This class handles the Service response
-	{
-	    @Override
-	    public void handleMessage( Message msg ) 
-	    {
-	        switch ( msg.what ) // get the message type
-	        {
-		        case BleService.RESPONSE: 
-		        {
-		            String result = msg.getData().getString( "respData" );
-		            Log.d( "DEBUG", "HEARTRATEACTIVITY RECEIVED: " + result );
-		        }
-	        }
-	    }
-	}
 	
 	@Override
 	protected void onCreate( Bundle savedInstanceState ) 
@@ -123,10 +42,6 @@ public class HeartRateActivity extends Activity implements OnClickListener
 		
 		RSSI.setText( "..." );
 		HeartRate.setText( "..." );
-		
-		createMessageHandler();
-		
-		initBroadcastIntents();
 	}
 	
 	@Override
@@ -141,7 +56,6 @@ public class HeartRateActivity extends Activity implements OnClickListener
 	protected void onResume() 
 	{
 		super.onResume();
-		//startService( new Intent( this, BleService.class ) );
 	}
 
 	@Override
@@ -194,61 +108,49 @@ public class HeartRateActivity extends Activity implements OnClickListener
 		default:
 		}
 	}
-
-	private void createMessageHandler()
-	{
-		// Service Connection to handle system callbacks
-        sConn = new ServiceConnection() 
-        {
-            @Override
-            public void onServiceDisconnected( ComponentName name ) 
-            {
-                messenger = null;
-            }
-
-			@Override
-			public void onServiceConnected( ComponentName name, IBinder service ) 
-			{
-				messenger = new Messenger( service ); // We are connected to the service
-			}
-        };
-		// We bind to the service
-        bindService( new Intent( this, BleService.class ), sConn, Context.BIND_AUTO_CREATE );
-	}
 	
-	private void sendRequestToBleService( String str, int flag )
+	protected void BleServiceCallback( String cmd )
 	{
-        Message msg = Message.obtain( null, flag );
- 
-        msg.replyTo = new Messenger( new BleResponseHandler() );
-
-        Bundle b = new Bundle();
-        b.putString( "data", str );
- 
-        msg.setData( b );
-        
-        try 
-        {
-            messenger.send( msg );
-        } 
-        catch ( RemoteException e )
-        {                    
-            e.printStackTrace();
-        }
+		super.BleServiceCallback(cmd);
+		int readData = 0;
+		int signalColor = Color.DKGRAY;
+		if( cmd.equalsIgnoreCase( "Hardware_Not_Available") )
+		{
+			Toast.makeText( this, "Hardware is NOT BLE compatible!", Toast.LENGTH_LONG ).show();
+		}
+		else if( cmd.equalsIgnoreCase( "Request_Ble_Enable" ) )
+		{
+			enableBleIntent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP );
+			startActivity( enableBleIntent );
+		}
+		else if( cmd.equalsIgnoreCase( "Device_Found" ) )
+		{
+			Toast.makeText( this, "RFduino Found!", Toast.LENGTH_LONG ).show();
+		}
+		else if( cmd.equalsIgnoreCase( "Device_Connected" ) )
+		{
+			Toast.makeText( this, "RFduino Connected!", Toast.LENGTH_LONG ).show();
+		}
+		else if( cmd.equalsIgnoreCase( "Device_Disconnected" ) )
+		{
+			Toast.makeText( this, "RFduino Disconnected!", Toast.LENGTH_LONG ).show();
+		}
+		else if( cmd.startsWith( "Data_Read" ) )
+		{
+			Scanner parse = new Scanner( cmd ).useDelimiter("[^0-9]+"); // Regular Expressions
+			readData = parse.nextInt();
+			HeartRate.setText( Integer.toString( readData ) );
+		}
+		else if( cmd.startsWith( "New_RSSI" ) )
+		{
+			Scanner parse = new Scanner( cmd ).useDelimiter("[^0-9]+"); // Regular Expressions
+			readData = parse.nextInt();
+			if( readData < 30 ) { signalColor = Color.RED; }
+			else if( readData < 40 ) { signalColor = 0xffff8800; } // Orange 
+			else { signalColor = 0xff008800; } // Dark Green
+			RSSILabel.setTextColor( signalColor );
+			RSSI.setTextColor( signalColor );
+			RSSI.setText( Integer.toString( readData ) );
+		}
 	}
-	
-	private void initBroadcastIntents()
-	{
-		Intent intentMyIntentService = new Intent( this, BleService.class );
-		intentMyIntentService.putExtra( BleService.EXTRA_KEY_IN, "test" );
-		startService( intentMyIntentService );
-		
-		bleServiceBroadcastReceiver = new BleServiceBroadcastReceiver();
-		
-		//register BroadcastReceiver
-		IntentFilter intentFilter = new IntentFilter( BleService.ACTION_MyIntentService );
-		intentFilter.addCategory( Intent.CATEGORY_DEFAULT );
-		registerReceiver( bleServiceBroadcastReceiver, intentFilter );
-	}
-	
 }
