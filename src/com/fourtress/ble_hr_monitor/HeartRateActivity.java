@@ -45,14 +45,6 @@ public class HeartRateActivity extends AbstractBleActivity implements OnClickLis
 	}
 	
 	@Override
-	public boolean onCreateOptionsMenu( Menu menu ) 
-	{
-	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate( R.menu.main, menu );
-	    return true;
-	}
-
-	@Override
 	protected void onResume() 
 	{
 		super.onResume();
@@ -62,31 +54,6 @@ public class HeartRateActivity extends AbstractBleActivity implements OnClickLis
 	protected void onPause() 
 	{
 		super.onPause();
-	}
-
-	@Override
-	public boolean onOptionsItemSelected( MenuItem item ) 
-	{
-		Intent NextActivity;
-		switch(item.getItemId())
-		{
-		case R.id.action_hr_graph:
-			NextActivity = new Intent( "com.fourtress.ble_hr_monitor.HRGRAPH" );
-			startActivity( NextActivity );
-			return super.onOptionsItemSelected( item );
-		case R.id.action_show_devices:
-			return super.onOptionsItemSelected( item );
-		case R.id.action_settings:
-			NextActivity = new Intent( "com.fourtress.ble_hr_monitor.SETTINGS" ); // start settings activity
-			startActivity( NextActivity );
-			return true;
-		case R.id.action_about:
-			NextActivity = new Intent( "com.fourtress.ble_hr_monitor.ABOUT" );
-			startActivity( NextActivity );
-			return super.onOptionsItemSelected( item );
-		default:
-			return super.onOptionsItemSelected( item );
-		}
 	}
 
 	@Override
@@ -125,15 +92,15 @@ public class HeartRateActivity extends AbstractBleActivity implements OnClickLis
 		}
 		else if( cmd.equalsIgnoreCase( "Device_Found" ) )
 		{
-			Toast.makeText( this, "RFduino Found!", Toast.LENGTH_LONG ).show();
+			//Toast.makeText( this, "RFduino Found!", Toast.LENGTH_LONG ).show();
 		}
 		else if( cmd.equalsIgnoreCase( "Device_Connected" ) )
 		{
-			Toast.makeText( this, "RFduino Connected!", Toast.LENGTH_LONG ).show();
+			//Toast.makeText( this, "RFduino Connected!", Toast.LENGTH_SHORT ).show();
 		}
 		else if( cmd.equalsIgnoreCase( "Device_Disconnected" ) )
 		{
-			Toast.makeText( this, "RFduino Disconnected!", Toast.LENGTH_LONG ).show();
+			//Toast.makeText( this, "RFduino Disconnected!", Toast.LENGTH_SHORT ).show();
 		}
 		else if( cmd.startsWith( "Data_Read" ) )
 		{

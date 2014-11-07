@@ -1,7 +1,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.ble_hr_monitor.MainActivity" >
-
+    
+    <item
+        android:id="@+id/action_home"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/action_home"/>   
+    
     <item
         android:id="@+id/action_hr_graph"
         android:orderInCategory="100"

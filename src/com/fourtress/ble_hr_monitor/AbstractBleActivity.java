@@ -15,6 +15,7 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 
 public class AbstractBleActivity extends Activity
@@ -61,7 +62,9 @@ public class AbstractBleActivity extends Activity
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) 
 	{
-		return super.onCreateOptionsMenu(menu);
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate( R.menu.main, menu );
+		return true;
 	}
 	
 
@@ -86,7 +89,28 @@ public class AbstractBleActivity extends Activity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) 
 	{
-		return super.onOptionsItemSelected(item);
+		Intent NextActivity;
+		switch(item.getItemId())
+		{
+		case R.id.action_home:
+			return super.onOptionsItemSelected( item );
+		case R.id.action_hr_graph:
+			NextActivity = new Intent( "com.fourtress.ble_hr_monitor.HRGRAPH" );
+			startActivity( NextActivity );
+			return super.onOptionsItemSelected( item );
+		case R.id.action_show_devices:
+			return super.onOptionsItemSelected( item );
+		case R.id.action_settings:
+			NextActivity = new Intent( "com.fourtress.ble_hr_monitor.SETTINGS" ); // start settings activity
+			startActivity( NextActivity );
+			return true;
+		case R.id.action_about:
+			NextActivity = new Intent( "com.fourtress.ble_hr_monitor.ABOUT" );
+			startActivity( NextActivity );
+			return super.onOptionsItemSelected( item );
+		default:
+			return super.onOptionsItemSelected( item );
+		}
 	}
 	
 	protected void createMessageHandler()
