@@ -15,7 +15,6 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 
 public class AbstractBleActivity extends Activity
@@ -62,12 +61,9 @@ public class AbstractBleActivity extends Activity
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) 
 	{
-	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate( R.menu.main, menu );
-		return true;
+		return super.onCreateOptionsMenu(menu);
 	}
 	
-
 	@Override
 	protected void onResume() 
 	{
@@ -85,7 +81,6 @@ public class AbstractBleActivity extends Activity
 		unbindService( sConn );
 	}
 
-	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) 
 	{
@@ -93,6 +88,7 @@ public class AbstractBleActivity extends Activity
 		switch(item.getItemId())
 		{
 		case R.id.action_home:
+			finish();
 			return super.onOptionsItemSelected( item );
 		case R.id.action_hr_graph:
 			NextActivity = new Intent( "com.fourtress.ble_hr_monitor.HRGRAPH" );

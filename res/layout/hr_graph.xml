@@ -8,7 +8,7 @@
     <LinearLayout
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content" 
-		android:layout_marginTop="50dp"
+		android:layout_marginTop="25dp"
 		android:orientation="horizontal" >
         
 	    <TextView
@@ -26,6 +26,14 @@
 	        android:layout_marginLeft="20dp"
 	        android:textColor="@android:color/darker_gray"
 	        android:textAppearance="?android:attr/textAppearanceSmall" />
+		
+		<TextView
+	        android:id="@+id/tvHR_BPM"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="50dp"
+	        android:textColor="@android:color/holo_red_dark" 
+	        android:textSize="50dp"/>
 
 	</LinearLayout>
 	
@@ -57,7 +65,7 @@
         android:id="@+id/llGraphID"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content" 
-		android:layout_marginTop="50dp"
+		android:layout_marginTop="25dp"
 		android:orientation="horizontal" >
 		
 	</LinearLayout>

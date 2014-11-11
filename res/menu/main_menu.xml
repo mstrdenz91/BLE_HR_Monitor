@@ -1,0 +1,28 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" >
+    
+    <item
+        android:id="@+id/action_hr_graph"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/action_hr_graph"/>   
+    
+    <item
+        android:id="@+id/action_show_devices"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/action_show_devices"/>
+    
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/action_settings"/>
+    
+    <item
+        android:id="@+id/action_about"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/action_about"/>
+
+</menu>

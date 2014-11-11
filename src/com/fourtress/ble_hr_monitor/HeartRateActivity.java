@@ -6,19 +6,13 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class HeartRateActivity extends AbstractBleActivity implements OnClickListener
+public class HeartRateActivity extends AbstractBleActivity
 {	
-	private Button TestButton1, TestButton2;
 	private TextView RSSILabel, RSSI, HeartRate;
 	
 	Intent enableBleIntent = new Intent( BluetoothAdapter.ACTION_REQUEST_ENABLE );
@@ -30,20 +24,25 @@ public class HeartRateActivity extends AbstractBleActivity implements OnClickLis
 		
 		setContentView( R.layout.heartrate );
 		
-		TestButton1 = (Button) 		findViewById( R.id.bTestButton1 );
-		TestButton2 = (Button) 		findViewById( R.id.bTestButton2 );
 		HeartRate 	= (TextView) 	findViewById( R.id.tvHeartRate );
 		RSSILabel	= (TextView)	findViewById( R.id.tvRSSILabel );
 		RSSI 		= (TextView) 	findViewById( R.id.tvRSSI );
-		
-		HeartRate.setOnClickListener(this);
-		TestButton1.setOnClickListener(this);
-		TestButton2.setOnClickListener(this);
 		
 		RSSI.setText( "..." );
 		HeartRate.setText( "..." );
 	}
 	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) 
+	{
+		MenuInflater inflater = getMenuInflater();
+	    inflater.inflate( R.menu.main_menu, menu );
+		return true;
+	}
+	
+
+
+
 	@Override
 	protected void onResume() 
 	{
@@ -54,26 +53,6 @@ public class HeartRateActivity extends AbstractBleActivity implements OnClickLis
 	protected void onPause() 
 	{
 		super.onPause();
-	}
-
-	@Override
-	public void onClick(View v) 
-	{
-		switch( v.getId() )
-		{
-		case R.id.bTestButton1:
-			Log.d( "DEBUG", "button1 clicked" );
-			sendRequestToBleService( "Activity-To-Service-String", BleService.START_SCAN );
-//			Intent bleServiceIntent = new Intent( this, BleService.class );
-//			bleServiceIntent.putExtra("activity", "previousActivity");
-//			startService( bleServiceIntent );
-			break;
-		case R.id.bTestButton2:
-			Log.d( "DEBUG", "button2 clicked" );
-//			stopService( new Intent( this, BleService.class ) );
-			break;
-		default:
-		}
 	}
 	
 	protected void BleServiceCallback( String cmd )
@@ -96,7 +75,7 @@ public class HeartRateActivity extends AbstractBleActivity implements OnClickLis
 		}
 		else if( cmd.equalsIgnoreCase( "Device_Connected" ) )
 		{
-			//Toast.makeText( this, "RFduino Connected!", Toast.LENGTH_SHORT ).show();
+			//Toast.makeText( this.getApplication(), "RFduino Connected!", Toast.LENGTH_SHORT ).show();
 		}
 		else if( cmd.equalsIgnoreCase( "Device_Disconnected" ) )
 		{
@@ -118,6 +97,8 @@ public class HeartRateActivity extends AbstractBleActivity implements OnClickLis
 			RSSILabel.setTextColor( signalColor );
 			RSSI.setTextColor( signalColor );
 			RSSI.setText( Integer.toString( readData ) );
+			if( readData == 0 ){ HeartRate.setText( "..." ); }
 		}
 	}
+
 }

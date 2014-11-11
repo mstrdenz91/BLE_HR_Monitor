@@ -5,6 +5,7 @@ import com.fourtress.ble_accelerator_lib.BleWrapper;
 import com.fourtress.ble_accelerator_lib.BleWrapperUiCallbacks;
 
 import android.app.IntentService;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -162,7 +163,7 @@ public class BleService extends IntentService
 				receiveRFduinoData();
 				break;
 			}
-			serviceDelay( 500 );
+			serviceDelay( 1000 );
 		}
 	}
 
@@ -356,4 +357,5 @@ public class BleService extends IntentService
 		bleGattCharacteristic = bleGattService.getCharacteristic(BleDefinedUUIDs.Characteristic.RFDUINO_UUID_RECEIVE);
 		bleWrapper.requestCharacteristicValue( bleGattCharacteristic );
 	}
+
 }
